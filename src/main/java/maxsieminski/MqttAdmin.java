@@ -28,14 +28,14 @@ public class MqttAdmin extends Thread {
         System.out.println("PID Setpoint set to " + PIDSetpoint);
     }
 
-    private double convertAndSavePayload(byte[] array) {
+    private double convertPayload(byte[] array) {
         StringBuilder charArray = new StringBuilder();
 
         for (byte b : array) {
             charArray.append((char) b);
         }
-        output = Double.parseDouble(charArray.toString());
-        return output;
+
+        return Double.parseDouble(charArray.toString());
     }
 
     public void getPidOutput() {
@@ -43,7 +43,13 @@ public class MqttAdmin extends Thread {
                 .topicFilter("home/maxsi/pidoutput")
                 .callback(publish ->
                         System.out.println("Found output on topic " + publish.getTopic() + ": " +
-                                convertAndSavePayload(publish.getPayloadAsBytes()))).send();
+                                convertPayload(publish.getPayloadAsBytes())))
+                .send();
+    }
 
+    @Override
+    public void run() {
+        initializeAdministrator();
+        getPidOutput();
     }
 }

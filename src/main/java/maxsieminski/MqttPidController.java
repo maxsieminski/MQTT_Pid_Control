@@ -24,14 +24,21 @@ public class MqttPidController extends Thread {
 
     }
 
-    private double convertAndSavePayload(byte[] array) {
+    private void setSetPoint(double setPoint) {
+        this.pid.setSetPoint(setPoint);
+    }
+
+    private double convertPayload(byte[] array) {
         StringBuilder charArray = new StringBuilder();
 
         for (byte b : array) {
             charArray.append((char) b);
         }
-        setPoint = Double.parseDouble(charArray.toString());
-        return setPoint;
+
+        double downloadedSetPoint = Double.parseDouble(charArray.toString());
+        setSetPoint(downloadedSetPoint);
+
+        return downloadedSetPoint;
     }
 
     public void getSetPoint() {
@@ -39,7 +46,7 @@ public class MqttPidController extends Thread {
                 .topicFilter("home/maxsi/pidadmin")
                 .callback(publish ->
                         System.out.println("Found setpoint on topic " + publish.getTopic() + ": " +
-                                convertAndSavePayload(publish.getPayloadAsBytes()))).send();
+                                convertPayload(publish.getPayloadAsBytes()))).send();
     }
 
     public void executePID() {
@@ -51,7 +58,6 @@ public class MqttPidController extends Thread {
 
             if (pid.getSetPoint() > 0) {
                 output += pidFeedback;
-                System.out.printf("SETPOINT : %f    OUTPUT : %f\n", pid.getSetPoint(), output);
                 listener.toBlocking().publishWith().topic("home/maxsi/pidoutput").payload(Double.toString(output).getBytes()).send();
             }
             try {
@@ -60,5 +66,11 @@ public class MqttPidController extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void run() {
+        getSetPoint();
+        executePID();
     }
 }

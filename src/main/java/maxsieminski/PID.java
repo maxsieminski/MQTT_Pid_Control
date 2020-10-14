@@ -5,20 +5,18 @@ public class PID {
     private final double P;
     private final double I;
     private final double D;
-    private final double setPoint;
+    private double setPoint;
     private double pGain, iGain, dGain;
     private double currentTime;
     private double savedTime;
     private double savedError;
 
-    public PID(double p, double i, double d, double setPoint) {
+    public PID(double p, double i, double d) {
         this.P = p;
         this.I = i;
         this.D = d;
-        this.setPoint = setPoint;
 
         currentTime = (double)System.currentTimeMillis() / 1000;
-        System.out.println(currentTime);
 
         pGain = 0.0;
         iGain = 0.0;
@@ -34,6 +32,10 @@ public class PID {
 
     public double getSetPoint() {
         return setPoint;
+    }
+
+    public void setSetPoint(double setPoint) {
+        this.setPoint = setPoint;
     }
 
     public void execute(double output) {
